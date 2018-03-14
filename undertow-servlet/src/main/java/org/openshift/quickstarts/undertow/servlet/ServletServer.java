@@ -33,6 +33,10 @@ import static io.undertow.servlet.Servlets.defaultContainer;
 import static io.undertow.servlet.Servlets.deployment;
 import static io.undertow.servlet.Servlets.servlet;
 
+import io.undertow.servlet.test.util.TestClassIntrospector;
+import io.undertow.servlet.api.ServletContainer;
+import io.undertow.jsp.JspServletBuilder;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -47,6 +51,25 @@ public class ServletServer {
 
     public static void main(final String[] args) {
         try {
+
+            final PathHandler servletPath = new PathHandler();
+            final ServletContainer container = ServletContainer.Factory.newInstance();
+
+            DeploymentInfo builder = new DeploymentInfo()
+                    //.setClassLoader(SimpleJspTestCase.class.getClassLoader())
+                    .setClassLoader(ServletServer.class.getClassLoader())
+                    .setContextPath("/servletContext")
+                    .setClassIntrospecter(TestClassIntrospector.INSTANCE)
+                    .setDeploymentName("servletContext.war")
+                    //.setResourceManager(new TestResourceLoader(SimpleJspTestCase.class))
+                    .setResourceManager(new TestResourceLoader(ServletServer.class))
+                    .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"));
+            JspServletBuilder.setupDeployment(builder, new HashMap<String, JspPropertyGroup>(), new HashMap<String, TagLibraryInfo>(), new MyInstanceManager());
+
+            DeploymentManager manager = container.addDeployment(builder);
+            manager.deploy();
+            servletPath.addPrefixPath(builder.getContextPath(), manager.start());            
+
 
             DeploymentInfo servletBuilder = deployment()
                     .setClassLoader(ServletServer.class.getClassLoader())
@@ -79,8 +102,10 @@ public class ServletServer {
             Undertow server = Undertow.builder()
                     .addHttpListener(8080, "0.0.0.0")
                     .addHttpsListener(8443, "0.0.0.0", sslContext)
-                    .setHandler(path)
+                    //.setHandler(path)
+                    .setHandler(servletPath)
                     .build();
+
             server.start();
         } catch (Exception e) {
             throw new RuntimeException(e);
