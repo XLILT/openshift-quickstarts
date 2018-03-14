@@ -18,6 +18,11 @@
 
 package org.openshift.quickstarts.undertow.servlet;
 
+import java.util.HashMap;
+
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -33,9 +38,13 @@ import static io.undertow.servlet.Servlets.defaultContainer;
 import static io.undertow.servlet.Servlets.deployment;
 import static io.undertow.servlet.Servlets.servlet;
 
-import io.undertow.servlet.test.util.TestClassIntrospector;
+import io.undertow.server.handlers.resource.PathResourceManager;
 import io.undertow.servlet.api.ServletContainer;
+import io.undertow.jsp.HackInstanceManager;
 import io.undertow.jsp.JspServletBuilder;
+
+import org.apache.jasper.deploy.JspPropertyGroup;
+import org.apache.jasper.deploy.TagLibraryInfo;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -55,21 +64,27 @@ public class ServletServer {
             final PathHandler servletPath = new PathHandler();
             final ServletContainer container = ServletContainer.Factory.newInstance();
 
-            DeploymentInfo builder = new DeploymentInfo()
-                    //.setClassLoader(SimpleJspTestCase.class.getClassLoader())
+            //System.out.println(ServletServer.class.getResource(""));
+            //System.out.println(ServletServer.class.getResource("/"));
+
+            //Path root = Paths.get(Thread.currentThread().getContextClassLoader().getResource("webapp").toURI());
+
+            DeploymentInfo builder = new DeploymentInfo()                    
                     .setClassLoader(ServletServer.class.getClassLoader())
                     .setContextPath("/servletContext")
-                    .setClassIntrospecter(TestClassIntrospector.INSTANCE)
+                    //.setClassIntrospecter(TestClassIntrospector.INSTANCE)
                     .setDeploymentName("servletContext.war")
                     //.setResourceManager(new TestResourceLoader(SimpleJspTestCase.class))
-                    .setResourceManager(new TestResourceLoader(ServletServer.class))
+                    //.setResourceManager(new PathResourceManager(root))
                     .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"));
-            JspServletBuilder.setupDeployment(builder, new HashMap<String, JspPropertyGroup>(), new HashMap<String, TagLibraryInfo>(), new MyInstanceManager());
 
-            DeploymentManager manager = container.addDeployment(builder);
-            manager.deploy();
-            servletPath.addPrefixPath(builder.getContextPath(), manager.start());            
+            JspServletBuilder.setupDeployment(builder, new HashMap<String, JspPropertyGroup>(),
+                new HashMap<String, TagLibraryInfo>(), new HackInstanceManager());
 
+            DeploymentManager manager2 = container.addDeployment(builder);
+            manager2.deploy();
+
+            servletPath.addPrefixPath(builder.getContextPath(), manager2.start());
 
             DeploymentInfo servletBuilder = deployment()
                     .setClassLoader(ServletServer.class.getClassLoader())
