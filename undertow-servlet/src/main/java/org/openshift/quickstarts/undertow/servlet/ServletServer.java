@@ -38,7 +38,12 @@ import static io.undertow.servlet.Servlets.defaultContainer;
 import static io.undertow.servlet.Servlets.deployment;
 import static io.undertow.servlet.Servlets.servlet;
 
+import io.undertow.servlet.test.util.TestClassIntrospector;
+import io.undertow.servlet.test.util.TestResourceLoader;
+
+import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.PathResourceManager;
+import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.servlet.api.ServletContainer;
 import io.undertow.jsp.HackInstanceManager;
 import io.undertow.jsp.JspServletBuilder;
@@ -61,45 +66,43 @@ public class ServletServer {
     public static void main(final String[] args) {
         try {
 
-            final PathHandler servletPath = new PathHandler();
-            final ServletContainer container = ServletContainer.Factory.newInstance();
-
-            //System.out.println(ServletServer.class.getResource(""));
-            //System.out.println(ServletServer.class.getResource("/"));
-
-            //Path root = Paths.get(Thread.currentThread().getContextClassLoader().getResource("webapp").toURI());
-
-            DeploymentInfo builder = new DeploymentInfo()                    
-                    .setClassLoader(ServletServer.class.getClassLoader())
-                    .setContextPath("/servletContext")
-                    //.setClassIntrospecter(TestClassIntrospector.INSTANCE)
-                    .setDeploymentName("servletContext.war")
-                    //.setResourceManager(new TestResourceLoader(SimpleJspTestCase.class))
-                    //.setResourceManager(new PathResourceManager(root))
-                    .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"));
-
-            JspServletBuilder.setupDeployment(builder, new HashMap<String, JspPropertyGroup>(),
-                new HashMap<String, TagLibraryInfo>(), new HackInstanceManager());
-
-            DeploymentManager manager2 = container.addDeployment(builder);
-            manager2.deploy();
-
-            servletPath.addPrefixPath(builder.getContextPath(), manager2.start());
-
             DeploymentInfo servletBuilder = deployment()
-                    .setClassLoader(ServletServer.class.getClassLoader())
-                    .setContextPath(MYAPP)
-                    .setDeploymentName("test.war")
-                    .addServlets(
-                            servlet("MessageServlet", MessageServlet.class)
-                                    .addInitParam("message", "Hello World")
-                                    .addMapping("/*"),
-                            servlet("MyServlet", MessageServlet.class)
-                                    .addInitParam("message", "MyServlet")
-                                    .addMapping("/myservlet"));
+            .setClassLoader(ServletServer.class.getClassLoader())
+            .setContextPath("/myservlet")
+            .setDeploymentName("myservlet.war")
+            .addServlets(
+                servlet("MessageServlet", MessageServlet.class)
+                    .addInitParam("message", "Hello World")
+                    .addMapping("/*"),
+                servlet("MyServlet", MessageServlet.class)
+                    .addInitParam("message", "MyServlet")
+                    .addMapping("/myservlet"));
 
-            DeploymentManager manager = defaultContainer().addDeployment(servletBuilder);
+            DeploymentInfo jspBuilder = deployment()
+                .setClassLoader(ServletServer.class.getClassLoader())
+                .setContextPath("/myjsp")
+                //.setClassIntrospecter(TestClassIntrospector.INSTANCE)
+                .setDeploymentName("myjsp.war")
+                //.setResourceManager(new PathResourceManager(Paths.get(System.getProperty("user.home"))))
+                .setResourceManager(new DefaultResourceLoader(ServletServer.class))
+                .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"));
+            
+            HashMap<String, TagLibraryInfo> tagLibraryInfo = TldLocator.createTldInfos();
+            JspServletBuilder.setupDeployment(jspBuilder, new HashMap<String, JspPropertyGroup>(), tagLibraryInfo, new HackInstanceManager());
+
+            DeploymentManager manager = defaultContainer().addDeployment(servletBuilder);            
+
             manager.deploy();
+
+            //final ServletContainer container = ServletContainer.Factory.newInstance();
+
+            DeploymentManager jspManager = defaultContainer().addDeployment(jspBuilder);            
+
+            jspManager.deploy();
+
+            PathHandler path = Handlers.path(/*Handlers.redirect("/myapp")*/)
+                    .addPrefixPath(servletBuilder.getContextPath(), manager.start())
+                    .addPrefixPath(jspBuilder.getContextPath(), jspManager.start());
 
             SSLContext sslContext = null;
             String filename = System.getenv("HTTPS_KEYSTORE");
@@ -112,13 +115,14 @@ public class ServletServer {
             }
             
             HttpHandler servletHandler = manager.start();
-            PathHandler path = Handlers.path(Handlers.redirect(MYAPP))
-                    .addPrefixPath(MYAPP, servletHandler);
+
+            //PathHandler path = Handlers.path(Handlers.redirect(MYAPP))
+            //        .addPrefixPath(MYAPP, servletHandler);
+
             Undertow server = Undertow.builder()
                     .addHttpListener(8080, "0.0.0.0")
                     .addHttpsListener(8443, "0.0.0.0", sslContext)
-                    //.setHandler(path)
-                    .setHandler(servletPath)
+                    .setHandler(path)                    
                     .build();
 
             server.start();
@@ -147,5 +151,11 @@ public class ServletServer {
         sslContext.init(keyManagers, null, null);
 
         return sslContext;
+    }
+
+    public static class DefaultResourceLoader extends ClassPathResourceManager {
+        public DefaultResourceLoader(final Class<?> clazz) {
+            super(clazz.getClassLoader(), "webapp");
+        }
     }
 }
