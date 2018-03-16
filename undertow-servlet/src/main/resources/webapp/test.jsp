@@ -1,6 +1,6 @@
 <HTML>
 <BODY>
-    Hello, JSP.
+    Hello, JSP. <% = 1 + 1 %>
 <br>
 </BODY>
 </HTML>
