@@ -100,7 +100,7 @@ public class ServletServer {
 
             jspManager.deploy();
 
-            PathHandler path = Handlers.path(/*Handlers.redirect("/myapp")*/)
+            PathHandler path = Handlers.path(Handlers.redirect("/myjsp/index.jsp"))
                     .addPrefixPath(servletBuilder.getContextPath(), manager.start())
                     .addPrefixPath(jspBuilder.getContextPath(), jspManager.start());
 
