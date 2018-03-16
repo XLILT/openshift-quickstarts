@@ -30,11 +30,13 @@ public class ConnectionFactory {
 			System.out.println("=======配置文件读取错误=======");
 		}
 		
-		//将所读取到的值赋值给成员变量
+		//将所读取到的值赋值给成员变量		
 		driver=prop.getProperty("driver");
 		dburl=prop.getProperty("dburl");
 		user=prop.getProperty("user");
 		password=prop.getProperty("password");
+
+		//System.out.println("dburl: " + dburl);
 	}
 	
 	private ConnectionFactory() {
@@ -49,6 +51,9 @@ public class ConnectionFactory {
 		try {
 			Class.forName(driver);
 			conn=DriverManager.getConnection(dburl,user,password);
+
+			//System.out.println("conn: " + conn);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

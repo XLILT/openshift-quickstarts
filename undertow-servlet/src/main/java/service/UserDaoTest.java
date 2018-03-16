@@ -59,7 +59,9 @@ public class UserDaoTest {
 			}
 		} finally {
 			try {
-				conn.close();
+				if(conn != null) {
+					conn.close();	
+				}				
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}

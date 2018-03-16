@@ -45,11 +45,15 @@ import io.undertow.server.handlers.resource.ClassPathResourceManager;
 import io.undertow.server.handlers.resource.PathResourceManager;
 import io.undertow.server.handlers.resource.FileResourceManager;
 import io.undertow.servlet.api.ServletContainer;
+import io.undertow.servlet.api.ServletInfo;
+
 import io.undertow.jsp.HackInstanceManager;
 import io.undertow.jsp.JspServletBuilder;
+import io.undertow.jsp.JspFileHandler;
 
 import org.apache.jasper.deploy.JspPropertyGroup;
 import org.apache.jasper.deploy.TagLibraryInfo;
+import org.apache.jasper.servlet.JspServlet;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -65,34 +69,55 @@ public class ServletServer {
 
     public static void main(final String[] args) {
         try {
-
+            /*
             DeploymentInfo servletBuilder = deployment()
             .setClassLoader(ServletServer.class.getClassLoader())
-            .setContextPath("/myservlet")
+            .setContextPath("/servlet")
             .setDeploymentName("myservlet.war")
-            .addServlets(
+            .addServlets(                
                 servlet("MessageServlet", MessageServlet.class)
                     .addInitParam("message", "Hello World")
                     .addMapping("/*"),
                 servlet("MyServlet", MessageServlet.class)
                     .addInitParam("message", "MyServlet")
-                    .addMapping("/myservlet"));
+                    .addMapping("/myservlet"),
+                servlet("LoginServlet", servlet.LoginServlet.class)                    
+                    .addMapping("/LoginServlet")
+                    );
+            */
 
             DeploymentInfo jspBuilder = deployment()
                 .setClassLoader(ServletServer.class.getClassLoader())
-                .setContextPath("/myjsp")
+                .setContextPath("/")
                 //.setClassIntrospecter(TestClassIntrospector.INSTANCE)
                 .setDeploymentName("myjsp.war")
                 //.setResourceManager(new PathResourceManager(Paths.get(System.getProperty("user.home"))))
                 .setResourceManager(new DefaultResourceLoader(ServletServer.class))
-                .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"));
+                .addServlet(JspServletBuilder.createServlet("Default Jsp Servlet", "*.jsp"))
+                .addServlets(
+                    /*                
+                    servlet("MessageServlet", MessageServlet.class)
+                        .addInitParam("message", "Hello World")
+                        .addMapping("/*"),
+                    servlet("MyServlet", MessageServlet.class)
+                        .addInitParam("message", "MyServlet")
+                        .addMapping("/myservlet"),
+                    */
+                    servlet("LoginServlet", servlet.LoginServlet.class)                    
+                        .addMapping("/LoginServlet")
+                );
+                /*
+                .addServlet(new ServletInfo("jsp-index", JspServlet.class)
+                    .addHandlerChainWrapper(JspFileHandler.jspFileHandlerWrapper("/index.jsp"))
+                    .addMapping("/"));
+                */
             
             HashMap<String, TagLibraryInfo> tagLibraryInfo = TldLocator.createTldInfos();
             JspServletBuilder.setupDeployment(jspBuilder, new HashMap<String, JspPropertyGroup>(), tagLibraryInfo, new HackInstanceManager());
 
-            DeploymentManager manager = defaultContainer().addDeployment(servletBuilder);            
+            //DeploymentManager manager = defaultContainer().addDeployment(servletBuilder);
 
-            manager.deploy();
+            //manager.deploy();
 
             //final ServletContainer container = ServletContainer.Factory.newInstance();
 
@@ -100,8 +125,8 @@ public class ServletServer {
 
             jspManager.deploy();
 
-            PathHandler path = Handlers.path(Handlers.redirect("/myjsp/index.jsp"))
-                    .addPrefixPath(servletBuilder.getContextPath(), manager.start())
+            PathHandler path = Handlers.path(/* Handlers.redirect("/index.jsp") */)
+                    //.addPrefixPath(servletBuilder.getContextPath(), manager.start())
                     .addPrefixPath(jspBuilder.getContextPath(), jspManager.start());
 
             SSLContext sslContext = null;
@@ -114,7 +139,7 @@ public class ServletServer {
                 sslContext = createSSLContext(loadKeyStore(keystore, password), password);
             }
             
-            HttpHandler servletHandler = manager.start();
+            //HttpHandler servletHandler = manager.start();
 
             //PathHandler path = Handlers.path(Handlers.redirect(MYAPP))
             //        .addPrefixPath(MYAPP, servletHandler);

@@ -3,12 +3,12 @@
     pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
-<!--------------绝对路径--------------->
+<!--------------绝对路径---------------->
 <% 
 	String path = request.getContextPath(); 
 	String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/"; 
 %> 
-<!--------------绝对路径-end--------------->
+<!--------------绝对路径-end---------------->
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
@@ -61,12 +61,12 @@
 		</nav>
 	</div>
 </header>
-<!----------------------------Header-end------------------------------------>
+<!----------------------------Header-end-------------------------------->
 
-<!----------------------- 登录、注册 ------------------------------->
-<jsp:include page="../Head/login/login.jsp"></jsp:include>
+<!----------------------- 登录、注册 -------------------------------->
+<jsp:include page="login/login.jsp"></jsp:include>
 <script type="text/javascript" src="Head/login/js/js.js"></script>
-<!----------------------- 登录、注册-end ------------------------------->
+<!----------------------- 登录、注册-end ------------------------>
 
 </div>
 </body>

@@ -50,6 +50,8 @@ public class LoginServlet extends HttpServlet {
 		map_r.put("name", name);
 		map_r.put("password", pass);
 
+		//System.out.println("query_string: " + request.getQueryString()); 
+
 		/*2、在RequestScope2中，这样取得参数值： */
 		Map<Object, Object> map2=new HashMap<>();
 		if(null==name) {
@@ -62,7 +64,8 @@ public class LoginServlet extends HttpServlet {
 	              
 	            value = URLDecoder.decode(value,"UTF-8");
 	            map2.put(key, value);
-	            System.out.println("11->:"+key+" : "+value);  
+
+	            //System.out.println("11->:"+key+" : "+value); 
 	        }
 	        name=(String)map2.get("name2");
 		}
@@ -72,6 +75,8 @@ public class LoginServlet extends HttpServlet {
 		 * 判断是登录还是注册,true是登录
 		 */
 		if (qr_pass == null) {
+			//System.out.println("qr_pass is null");
+
 			if (name.equals(map.get("name")) && pass.equals(map.get("password"))
 					&& code.equals(session.getAttribute("certCode"))) {
 
@@ -87,13 +92,15 @@ public class LoginServlet extends HttpServlet {
 			} else {
 				response.sendRedirect("index.jsp");
 			}
-		} else if (pass.equals(qr_pass) && code.equals(session.getAttribute("certCode"))) {
+		} else if (pass.equals(qr_pass) /* && code.equals(session.getAttribute("certCode")) */) {
 
 			UserDaoTest.insert(map_r);
 
 			/*1、在RequestScope中修改URL */
 			response.sendRedirect("LoginServlet?name2=" + URLEncoder.encode(name,"UTF-8") + "&pass=" + pass + "&code=" + code);
 		} else {
+			//System.out.println("else");
+
 			response.sendRedirect("index.jsp");
 		}
 	}
