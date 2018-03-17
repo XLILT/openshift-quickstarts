@@ -18,6 +18,8 @@ import javax.servlet.http.HttpSession;
 import entity.User;
 import service.UserDaoTest;
 
+import service.ViaDaoTest;
+
 /**
  * @author MaLiang
  * @version 创建时间：Aug 24, 2017 4:29:03 PM tags
@@ -32,6 +34,8 @@ public class LoginServlet extends HttpServlet {
 		request.setCharacterEncoding("UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("text/html; charset=UTF-8");
+
+		ViaDaoTest.init();
 
 		/* 用户名 */
 		String name = request.getParameter("name");

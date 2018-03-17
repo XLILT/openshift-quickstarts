@@ -17,6 +17,8 @@ import dao.impl.ViaDaoImpl;
 import entity.Via;
 import util.ConnectionFactory;
 
+import dao.impl.InitDaoImpl;
+
 public class ViaDaoTest {
 
 	static Connection conn = null;
@@ -132,6 +134,29 @@ public class ViaDaoTest {
 		}
 	}
 	
-	
+	public static void init() {
+		try {
+			conn = ConnectionFactory.getInstance().makeConnection();
+			conn.setAutoCommit(false);
+
+			InitDaoImpl initDao = new InitDaoImpl();
+			
+			initDao.init(conn);
+			
+			conn.commit();
+		} catch (SQLException e) {
+			try {
+				conn.rollback();
+			} catch (Exception e2) {
+				e2.printStackTrace();
+			}
+		} finally {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 	
 }
