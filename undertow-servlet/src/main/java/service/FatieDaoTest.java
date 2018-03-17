@@ -50,6 +50,8 @@ public class FatieDaoTest {
 				map.put("time", rs.getString(6));
 				map.put("username", rs.getString(7));
 				
+				System.out.println("titles: " + rs.getString(2));
+
 				list.add(i, map);
 			}
 			conn.commit();
